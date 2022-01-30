@@ -1,0 +1,24 @@
+{
+  "name": "@connectter/tsock",
+  "version": "1.0.0",
+  "description": "cluster supported node.js tcp server & tcp client",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ioredis": "^4.28.3",
+    "lodash": "^4.17.21",
+    "uuid": "^8.3.2"
+  },
+  "engines": {
+    "node": ">=16.13.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alicilin/Tsock.git"
+  }
+}
