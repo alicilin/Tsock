@@ -1,20 +1,20 @@
-# @connectter/Tsock
+# @connectterou/Tsock
 
 Tsock is a node.js tcp server & client library
 
 ## Installation
 
-Use the package manager npm to install foobar.
+Use the package manager npm to install @connectterou/tsock.
 
 ```bash
-npm i @connectter/tsock
+npm i @connectterou/tsock
 ```
 
 ## Usage
 
 ```javascript
 'use strict';
-const { Tserver, Tclient, RedisAdapter } = require('@connectter/tsock');
+const { Tserver, Tclient, RedisAdapter } = require('@connectterou/tsock');
 const server = new Tserver(8080);
 const PASS = '1234';
 

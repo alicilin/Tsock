@@ -1,5 +1,5 @@
 {
-  "name": "@connectter/tsock",
+  "name": "@connectterou/tsock",
   "version": "1.0.0",
   "description": "cluster supported node.js tcp server & tcp client",
   "main": "index.js",

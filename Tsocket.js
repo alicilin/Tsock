@@ -1,7 +1,6 @@
 'use strict';
 const parser = require('./helpers/parser');
 const encoder = require('./helpers/encoder');
-const { delimiter } = require('./consts/consts');
 const { EventEmitter, on, once } = require('events');
 const { v4 } = require('uuid');
 const _ = require('lodash');
