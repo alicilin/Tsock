@@ -58,6 +58,7 @@ async function main() {
     let tclient = new Tclient('127.0.0.1', 8080);
     await tclient.onceAsync('connect');
     tclient.emit('password', '1234');
+    await tclient.onceAsync('ready');
     for await (let [x, res] of tclient.onAsync('hello')) {
         console.log(x);
         res('response');

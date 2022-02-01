@@ -1,6 +1,7 @@
 'use strict';
 const parser = require('./helpers/parser');
 const encoder = require('./helpers/encoder');
+const sleep = require('./helpers/sleep');
 const { EventEmitter, on, once } = require('events');
 const { v4 } = require('uuid');
 const _ = require('lodash');
@@ -9,13 +10,20 @@ const _ = require('lodash');
 class Tsocket extends EventEmitter {
     constructor(sock) {
         super();
+        let close = () => {
+            super.emit('disconnect', this);
+            this.connected = false;
+        };
+        
+        this.connected = true;
         this.sock = sock;
         this.id = v4();
-        this.rooms = new Set([this.id]);
-        this.sock.on('close', () => super.emit('disconnect', this));
-        this.sock.on('error', e => super.emit('error', e));
-        this.setMaxListeners(0);
         this.tstr = '';
+        this.rooms = new Set([this.id]);
+        this.sock.on('close', close);
+        this.sock.on('error', e => super.emit('error', e));
+        this.sock.setKeepAlive(true, 5000);
+        this.setMaxListeners(0);
         this.bindOnData();
     }
 
@@ -57,6 +65,19 @@ class Tsocket extends EventEmitter {
 
     async emit(event, vars, wait = false) {
         let id = v4();
+        for (let i = 0; i < 60; i++) {
+            if (this.connected === false) {
+                await sleep(1000);
+                continue;
+            }
+
+            break;
+        }
+
+        if (this.connected === false) {
+            return false;
+        }
+
         if (wait === true) {
             let ac = new AbortController();
             let timeout = setTimeout(() => ac.abort(), 60 * 1000);

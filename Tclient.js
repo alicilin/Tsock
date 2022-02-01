@@ -2,6 +2,7 @@
 const Net = require('net');
 const parser = require('./helpers/parser');
 const encoder = require('./helpers/encoder');
+const sleep = require('./helpers/sleep');
 const { EventEmitter, on, once } = require('events');
 const { v4 } = require('uuid');
 const _ = require('lodash');
@@ -12,8 +13,11 @@ class Tclient extends EventEmitter {
         this.host = host;
         this.port = port;
         this.sock = new Net.Socket();
+        this.sock.setKeepAlive(true, 5000);
         this.setMaxListeners(0);
+        this.connected = false;
         this.tstr = '';
+        this.connect();
     }
 
     disconnect() {
@@ -21,21 +25,24 @@ class Tclient extends EventEmitter {
         return this;
     }
 
-    async connect() {
-        this.sock.on('connect', () => super.emit('connect'));
-        this.sock.on('close', () => super.emit('disconnect', this));
-        this.sock.on('error', e => super.emit('error', e));
-        this.bindOnData();
-        let ccb = r => this.sock.connect({ host: this.host, port: this.port }, r);
-        let rcb = () => this.onceAsync('ready');
-        let rdcb = ([ready]) => {
-            if (ready === false) {
-                this.disconnect();
-                super.emit('error', new Error('Handshake Error'));
-            }
+    connect() {
+        this.sock.removeAllListeners();
+        let connect = () => {
+            this.connected = true;
+            super.emit('connect');
         };
 
-        await new Promise(ccb).then(rcb).then(rdcb);
+        let close = () => {
+            this.connected = false;
+            super.emit('disconnect', this);
+        };
+
+        this.bindOnData();
+        this.sock.on('connect', connect);
+        this.sock.on('close', close);
+        this.sock.on('error', e => super.emit('error', e));
+        this.sock.connect({ host: this.host, port: this.port });
+        return this;
     }
 
     onAsync(event, signal = undefined) {
@@ -65,6 +72,19 @@ class Tclient extends EventEmitter {
 
     async emit(event, vars, wait = false) {
         let id = v4();
+        for (let i = 0; i < 60; i++) {
+            if (this.connected === false) {
+                await sleep(1000);
+                continue;
+            }
+            
+            break;
+        }
+
+        if (this.connected === false) {
+            throw new Error('socket is not writable');
+        }
+
         if (wait === true) {
             let ac = new AbortController();
             let timeout = setTimeout(() => ac.abort(), 60 * 1000);
