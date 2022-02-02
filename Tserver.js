@@ -5,7 +5,7 @@ const Tsocket = require('./Tsocket');
 const BaseAdapter = require('./adapters/BaseAdapter');
 const { EventEmitter, on, once } = require('events');
 const { v4 } = require('uuid');
-const v8 = require('v8');
+const { encode } = require('msgpackr');
 const _ = require('lodash');
 
 class Tserver extends EventEmitter {
@@ -77,7 +77,7 @@ class Tserver extends EventEmitter {
         }
 
         if (publish && this.adt) {
-            let buff = v8.serialize([this.id, room, event, message]);
+            let buff = encode([this.id, room, event, message]);
             this.adt.sendmsg(buff.toString('hex'));
         }
 

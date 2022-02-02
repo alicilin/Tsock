@@ -1,9 +1,8 @@
 'use strict';
-const v8 = require('v8');
+const { encode } = require('msgpackr');
 const { delimiter } = require('../consts/consts');
 function encoder(value) {
-    let hex = v8.serialize(value).toString('hex');
-    return delimiter + hex + delimiter;
+    return delimiter + encode(value).toString('hex') + delimiter;
 }
 
 module.exports = encoder;

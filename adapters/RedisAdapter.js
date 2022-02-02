@@ -1,7 +1,7 @@
 'use strict';
 const BaseAdapter = require('./BaseAdapter');
 const Redis = require('ioredis');
-const v8 = require('v8');
+const { encode, decode } = require('msgpackr');
 const { v4 } = require('uuid');
 const { on } = require('events');
 const _ = require('lodash');
@@ -22,7 +22,7 @@ class RedisAdapter extends BaseAdapter {
 
     async onmsg(ts) {
         let onmsg = (_, msg) => {
-            let [id, room, event, message] = v8.deserialize(Buffer.from(msg, 'hex'));
+            let [id, room, event, message] = decode(Buffer.from(msg, 'hex'));
             if (id !== ts.id) {
                 ts.emit(room, event, message, false);
             }
@@ -39,13 +39,13 @@ class RedisAdapter extends BaseAdapter {
 
     async onclients(ts) {
         let onmsg = async (a, b, msg) => {
-            let [id, room] = v8.deserialize(Buffer.from(msg, 'hex'));
+            let [id, room] = decode(Buffer.from(msg, 'hex'));
             let socks = new Set();
             for await (let value of ts.filterSockets(room)) {
                 socks.add(value.id);
             }
 
-            let hex = v8.serialize([id, socks]).toString('hex');
+            let hex = encode([id, socks]).toString('hex');
             this.pub.publish(`tcp:socks:${id}:res`, hex);
         };
         
@@ -55,7 +55,7 @@ class RedisAdapter extends BaseAdapter {
 
     async clients(room) {
         let id = v4();
-        let value = v8.serialize(([id, room])).toString('hex');
+        let value = encode(([id, room])).toString('hex');
         let ac = new AbortController();
         let timeout = setTimeout(() => ac.abort(), 120 * 1000);
         let iterable = on(this.ressub, 'pmessage', { signal: ac.signal });
@@ -68,7 +68,7 @@ class RedisAdapter extends BaseAdapter {
         }
 
         for await (let [a, b, buff] of iterable) {
-            let [eid, esocks] = v8.deserialize(Buffer.from(buff, 'hex'));
+            let [eid, esocks] = decode(Buffer.from(buff, 'hex'));
             if (eid === id) {
                 for (let sid of esocks) {
                     socks.add(sid);

@@ -1,6 +1,6 @@
 'use strict';
 const nextTick = require('./nextTick');
-const v8 = require('v8');
+const { decode } = require('msgpackr');;
 const { delimiter } = require('../consts/consts');
 
 async function indexOfAsync(str, search, from = 0) {
@@ -35,7 +35,7 @@ async function *parser(str) {
             return;
         }
 
-        yield v8.deserialize(Buffer.from(str.slice(ix1 + delimiter.length, ix2), 'hex'));
+        yield decode(Buffer.from(str.slice(ix1 + delimiter.length, ix2), 'hex'));
         await nextTick();
         str = str.slice(ix2 + delimiter.length);
     }
