@@ -1,12 +1,12 @@
 {
   "name": "@connectterou/tsock",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "cluster supported node.js tcp server & tcp client",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": ["tcp", "socket", "tcp socket", "tcp server", "tcp client", "socket.io tcp", "cluster tcp socket"],
   "author": "",
   "license": "ISC",
   "dependencies": {

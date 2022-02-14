@@ -1,4 +1,4 @@
 'use strict';
-const delimiter = '#||#';
+const delimiter = '||';
 //-------------------------------------
 module.exports = { delimiter };

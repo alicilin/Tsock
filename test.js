@@ -17,7 +17,8 @@ async function main() {
     });
 
     server.on('connection', async sock => {
-        setInterval(() => server.emit('testto', 'hello', 'hhhello'), 500);
+        setInterval(() => server.emit('testto', 'hello', 'hhhello'), 1000);
+        sock.on('hello', msg => console.log(msg));
         sock.on('disconnect', () => console.log('disconnect', sock.id)); // disconnect event
     });
 
@@ -26,6 +27,7 @@ async function main() {
     let tclient = new Tclient('127.0.0.1', 8080);
     tclient.emit('password', '1234');
     await tclient.onceAsync('ready');
+    setInterval(() => tclient.emit('hello', 'hellores'), 1000);
     tclient.on('hello', (msg, res) => {
         console.log(msg);
     });

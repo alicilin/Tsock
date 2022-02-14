@@ -12,11 +12,11 @@ class Tclient extends EventEmitter {
         super();
         this.host = host;
         this.port = port;
+        this.tstr = '';
+        this.connected = false;
         this.sock = new Net.Socket();
         this.sock.setKeepAlive(true, 5000);
         this.setMaxListeners(0);
-        this.connected = false;
-        this.tstr = '';
         this.connect();
     }
 
