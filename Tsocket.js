@@ -29,19 +29,23 @@ class Tsocket extends EventEmitter {
 
 
     async bindOnData() {
-        for await (let chunk of on(this.sock, 'data')) {
-            this.tstr += chunk.toString('utf-8');
-            for await (let value of parser(this.tstr)) {
-                if (_.isString(value)) {
-                    this.tstr = value;
-                    break;
-                }
+        try {
+            for await (let chunk of on(this.sock, 'data')) {
+                this.tstr += chunk.toString('utf-8');
+                for await (let value of parser(this.tstr)) {
+                    if (_.isString(value)) {
+                        this.tstr = value;
+                        break;
+                    }
 
-                let [event, vars, id] = value;
-                if (_.isString(event) && _.isNil(id) === false) {
-                    super.emit(event, vars, this.emit.bind(this, `${event}:${id}`));
+                    let [event, vars, id] = value;
+                    if (_.isString(event) && _.isNil(id) === false) {
+                        super.emit(event, vars, this.emit.bind(this, `${event}:${id}`));
+                    }
                 }
             }
+        } catch (error) {
+            
         }
     }
 
