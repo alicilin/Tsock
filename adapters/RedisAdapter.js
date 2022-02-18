@@ -1,7 +1,7 @@
 'use strict';
 const BaseAdapter = require('./BaseAdapter');
 const Redis = require('ioredis');
-const { encode, decode } = require('msgpackr');
+const { pack, unpack } = require('msgpackr');
 const { v4 } = require('uuid');
 const { on } = require('events');
 const _ = require('lodash');
@@ -22,43 +22,43 @@ class RedisAdapter extends BaseAdapter {
 
     async onmsg(ts) {
         let onmsg = (_, msg) => {
-            let [id, room, event, message] = decode(Buffer.from(msg, 'hex'));
+            let [id, room, event, message] = unpack(msg);
             if (id !== ts.id) {
                 ts.emit(room, event, message, false);
             }
         };
 
-        this.sub.on('message', onmsg);
+        this.sub.on('messageBuffer', onmsg);
         return true;
     }
 
-    async sendmsg(hex) {
-        await this.pub.publish('tcp:msg', hex);
+    async sendmsg(buffer) {
+        await this.pub.publish('tcp:msg', buffer);
         return true;
     }
 
     async onclients(ts) {
         let onmsg = async (a, b, msg) => {
-            let [id, room] = decode(Buffer.from(msg, 'hex'));
+            let [id, room] = unpack(msg);
             let socks = new Set();
             for await (let value of ts.filterSockets(room)) {
                 socks.add(value.id);
             }
 
-            let hex = encode([id, socks]).toString('hex');
-            this.pub.publish(`tcp:socks:${id}:res`, hex);
+            let buff = pack([id, socks]);
+            this.pub.publish(`tcp:socks:${id}:res`, buff);
         };
         
-        this.reqsub.on('pmessage', onmsg);
+        this.reqsub.on('pmessageBuffer', onmsg);
         return true;
     }
 
     async clients(room) {
         let id = v4();
-        let value = encode(([id, room])).toString('hex');
+        let value = pack(([id, room]));
         let ac = new AbortController();
         let timeout = setTimeout(() => ac.abort(), 120 * 1000);
-        let iterable = on(this.ressub, 'pmessage', { signal: ac.signal });
+        let iterable = on(this.ressub, 'pmessageBuffer', { signal: ac.signal });
         let nums = await this.pub.publish(`tcp:socks:${id}:req`, value);
         let socks = new Set();
         let i = 1;
@@ -68,7 +68,7 @@ class RedisAdapter extends BaseAdapter {
         }
 
         for await (let [a, b, buff] of iterable) {
-            let [eid, esocks] = decode(Buffer.from(buff, 'hex'));
+            let [eid, esocks] = unpack(buff);
             if (eid === id) {
                 for (let sid of esocks) {
                     socks.add(sid);

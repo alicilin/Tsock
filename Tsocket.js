@@ -1,9 +1,8 @@
 'use strict';
-const parser = require('./helpers/parser');
-const encoder = require('./helpers/encoder');
-const sleep = require('./helpers/sleep');
+const { pack, UnpackrStream } = require('msgpackr');
 const { EventEmitter, on, once } = require('events');
 const { v4 } = require('uuid');
+const sleep = require('./helpers/sleep');
 const _ = require('lodash');
 
 
@@ -18,7 +17,6 @@ class Tsocket extends EventEmitter {
         this.connected = true;
         this.sock = sock;
         this.id = v4();
-        this.tstr = '';
         this.rooms = new Set([this.id]);
         this.sock.on('close', close);
         this.sock.on('error', e => super.emit('error', e));
@@ -30,22 +28,16 @@ class Tsocket extends EventEmitter {
 
     async bindOnData() {
         try {
-            for await (let chunk of on(this.sock, 'data')) {
-                this.tstr += chunk.toString('utf-8');
-                for await (let value of parser(this.tstr)) {
-                    if (_.isString(value)) {
-                        this.tstr = value;
-                        break;
-                    }
-
-                    let [event, vars, id] = value;
-                    if (_.isString(event) && _.isNil(id) === false) {
-                        super.emit(event, vars, this.emit.bind(this, `${event}:${id}`));
-                    }
+            let stream = new UnpackrStream();
+            this.sock.pipe(stream);
+            for await (let chunk of stream) {
+                let [event, vars, id] = chunk;
+                if (_.isString(event) && _.isNil(id) === false) {
+                    super.emit(event, vars, this.emit.bind(this, `${event}:${id}`));
                 }
             }
         } catch (error) {
-            
+
         }
     }
 
@@ -86,11 +78,11 @@ class Tsocket extends EventEmitter {
             let ac = new AbortController();
             let timeout = setTimeout(() => ac.abort(), 60 * 1000);
             let res = this.onceAsync(`${event}:${id}`, ac.signal);
-            this.sock.write(encoder([event, vars, id]));
+            this.sock.write(pack([event, vars, id]));
             return res.then(x => _.first(x)).finally(() => clearTimeout(timeout));
         }
         
-        this.sock.write(encoder([event, vars, id]));
+        this.sock.write(pack([event, vars, id]));
     }
 }
 

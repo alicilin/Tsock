@@ -16,8 +16,13 @@ async function main() {
         next();
     });
 
+    let x = 'hello';
+    for (let i = 0; i < 30000; i++) {
+        x += 'hohahah';
+    }
+
     server.on('connection', async sock => {
-        setInterval(() => server.emit('testto', 'hello', 'hhhello'), 1000);
+        setInterval(() => server.emit('testto', 'hello', x), 1000);
         sock.on('hello', msg => console.log(msg));
         sock.on('disconnect', () => console.log('disconnect', sock.id)); // disconnect event
     });
