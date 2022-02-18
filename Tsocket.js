@@ -28,7 +28,7 @@ class Tsocket extends EventEmitter {
 
     async bindOnData() {
         try {
-            let stream = new UnpackrStream();
+            let stream = new UnpackrStream({ mapsAsObjects: true });
             this.sock.pipe(stream);
             for await (let chunk of stream) {
                 let [event, vars, id] = chunk;

@@ -16,10 +16,7 @@ async function main() {
         next();
     });
 
-    let x = 'hello';
-    for (let i = 0; i < 30000; i++) {
-        x += 'hohahah';
-    }
+    let x = { ok: 'yes' };
 
     server.on('connection', async sock => {
         setInterval(() => server.emit('testto', 'hello', x), 1000);
