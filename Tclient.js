@@ -12,19 +12,20 @@ class Tclient extends EventEmitter {
         this.host = host;
         this.port = port;
         this.connected = false;
-        this.sock = new Net.Socket();
-        this.sock.setKeepAlive(true, 5000);
+        this.sock = null;
         this.setMaxListeners(0);
         this.connect();
     }
 
     disconnect() {
-        this.sock.destroy();
+        this.sock?.destroy();
+        this.connected = false;
         return this;
     }
 
     connect() {
-        this.sock.removeAllListeners();
+        this.sock = new Net.Socket();
+        this.sock.setKeepAlive(true, 5000);
         let connect = () => {
             this.connected = true;
             super.emit('connect');

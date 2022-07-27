@@ -1,6 +1,6 @@
 'use strict';
 const { Tserver, Tclient, RedisAdapter } = require('./index');
-const server = new Tserver(8080);
+const server = new Tserver(7070);
 const PASS = '1234';
 
 async function main() {
@@ -11,6 +11,7 @@ async function main() {
             return;
         }
 
+        console.log('hohohoho');
         socket.join('testto'); // join room
         //socket.leave('testto') // leave room
         next();
@@ -26,13 +27,22 @@ async function main() {
 
     await server.listen();
 
-    let tclient = new Tclient('127.0.0.1', 8080);
+    let tclient = new Tclient('127.0.0.1', 7070);
     tclient.emit('password', '1234');
     await tclient.onceAsync('ready');
-    setInterval(() => tclient.emit('hello', 'hellores'), 1000);
+    //setInterval(() => tclient.emit('hello', 'hellores'), 1000);
     tclient.on('hello', (msg, res) => {
         console.log(msg);
     });
+
+    setTimeout(() => {
+        tclient.disconnect();
+        setTimeout(async () => {
+            tclient.connect();
+            tclient.emit('password', '1234');
+            await tclient.onceAsync('ready');
+        }, 1000);
+    }, 3000)
 }
 
 main();

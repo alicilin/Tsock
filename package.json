@@ -1,6 +1,6 @@
 {
   "name": "@connectterou/tsock",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "cluster supported node.js tcp server & tcp client",
   "main": "index.js",
   "scripts": {
