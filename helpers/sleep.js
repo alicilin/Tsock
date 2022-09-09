@@ -1,3 +1,2 @@
 'use strict';
-const { promisify } = require('util');
-module.exports = promisify(setTimeout);
+module.exports = require('node:timers/promises').setTimeout;
