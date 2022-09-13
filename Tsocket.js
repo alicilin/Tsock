@@ -1,10 +1,10 @@
 'use strict';
-const { pack, UnpackrStream } = require('msgpackr');
+const { Packr, UnpackrStream } = require('msgpackr');
 const { EventEmitter, on, once } = require('events');
 const { v4 } = require('uuid');
 const sleep = require('./helpers/sleep');
 const _ = require('lodash');
-
+const packr = new Packr();
 
 class Tsocket extends EventEmitter {
     constructor(sock) {
@@ -78,11 +78,11 @@ class Tsocket extends EventEmitter {
             let ac = new AbortController();
             let timeout = setTimeout(() => ac.abort(), 60 * 1000);
             let res = this.onceAsync(`${event}:${id}`, ac.signal);
-            this.sock.write(pack([event, vars, id]));
+            this.sock.write(packr.pack([event, vars, id]));
             return res.then(x => _.first(x)).finally(() => clearTimeout(timeout));
         }
         
-        this.sock.write(pack([event, vars, id]));
+        this.sock.write(packr.pack([event, vars, id]));
     }
 }
 

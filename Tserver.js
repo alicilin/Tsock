@@ -5,8 +5,9 @@ const Tsocket = require('./Tsocket');
 const BaseAdapter = require('./adapters/BaseAdapter');
 const { EventEmitter, on, once } = require('events');
 const { v4 } = require('uuid');
-const { pack } = require('msgpackr');
+const { Packr } = require('msgpackr');
 const _ = require('lodash');
+const packr = new Packr();
 
 class Tserver extends EventEmitter {
     static sockets = new Set();
@@ -25,12 +26,12 @@ class Tserver extends EventEmitter {
         for (let value of this.constructor.sockets) {
             await nextTick();
             let finder = x => value.rooms.has(x);
-            if (_.isArray(room) && _.find(room, finder)) {
+            if (_.isArray(room) && _.find(room, finder) && value?.connectted === true) {
                 yield value;
                 continue;
             }
 
-            if (value.rooms.has(room)) {
+            if (value.rooms.has(room) && value?.connectted === true) {
                 yield value;
             }
         }
@@ -40,11 +41,11 @@ class Tserver extends EventEmitter {
         for (let value of this.constructor.sockets) {
             await nextTick();
             let finder = x => value.rooms.has(x);
-            if (_.isArray(room) && _.find(room, finder)) {
+            if (_.isArray(room) && _.find(room, finder) && value?.connectted === true) {
                 return value;
             }
 
-            if (value.rooms.has(room)) {
+            if (value.rooms.has(room) && value?.connectted === true) {
                 return value;
             }
         }
@@ -77,7 +78,7 @@ class Tserver extends EventEmitter {
         }
 
         if (publish && this.adt) {
-            let buff = pack([this.id, room, event, message]);
+            let buff = packr.pack([this.id, room, event, message]);
             this.adt.sendmsg(buff);
         }
 

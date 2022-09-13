@@ -1,11 +1,11 @@
 'use strict';
 const BaseAdapter = require('./BaseAdapter');
 const Redis = require('ioredis');
-const { pack, unpack } = require('msgpackr');
+const { Packr } = require('msgpackr');
 const { v4 } = require('uuid');
 const { on } = require('events');
 const _ = require('lodash');
-
+const packr = new Packr();
 class RedisAdapter extends BaseAdapter {
     constructor(options) {
         super();
@@ -22,7 +22,7 @@ class RedisAdapter extends BaseAdapter {
 
     async onmsg(ts) {
         let onmsg = (_, msg) => {
-            let [id, room, event, message] = unpack(msg);
+            let [id, room, event, message] = packr.unpack(msg);
             if (id !== ts.id) {
                 ts.emit(room, event, message, false);
             }
@@ -39,13 +39,13 @@ class RedisAdapter extends BaseAdapter {
 
     async onclients(ts) {
         let onmsg = async (a, b, msg) => {
-            let [id, room] = unpack(msg);
+            let [id, room] = packr.unpack(msg);
             let socks = new Set();
             for await (let value of ts.filterSockets(room)) {
                 socks.add(value.id);
             }
 
-            let buff = pack([id, socks]);
+            let buff = packr.pack([id, socks]);
             this.pub.publish(`tcp:socks:${id}:res`, buff);
         };
         
@@ -55,7 +55,7 @@ class RedisAdapter extends BaseAdapter {
 
     async clients(room) {
         let id = v4();
-        let value = pack(([id, room]));
+        let value = packr.pack(([id, room]));
         let ac = new AbortController();
         let timeout = setTimeout(() => ac.abort(), 120 * 1000);
         let iterable = on(this.ressub, 'pmessageBuffer', { signal: ac.signal });
@@ -68,7 +68,7 @@ class RedisAdapter extends BaseAdapter {
         }
 
         for await (let [a, b, buff] of iterable) {
-            let [eid, esocks] = unpack(buff);
+            let [eid, esocks] = packr.unpack(buff);
             if (eid === id) {
                 for (let sid of esocks) {
                     socks.add(sid);
