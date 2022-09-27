@@ -61,7 +61,7 @@ class Tsocket extends EventEmitter {
 
     async emit(event, vars, wait = false) {
         let id = v4();
-        for (let i = 0; i < 60; i++) {
+        for (let i = 0; i < 10; i++) {
             if (this.connected === false) {
                 await sleep(1000);
                 continue;
@@ -76,7 +76,7 @@ class Tsocket extends EventEmitter {
 
         if (wait === true) {
             let ac = new AbortController();
-            let timeout = setTimeout(() => ac.abort(), 60 * 1000);
+            let timeout = setTimeout(() => ac.abort(), 10 * 1000);
             let res = this.onceAsync(`${event}:${id}`, ac.signal);
             this.sock.write(packr.pack([event, vars, id]));
             return res.then(x => _.first(x)).finally(() => clearTimeout(timeout));

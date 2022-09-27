@@ -26,12 +26,12 @@ class Tserver extends EventEmitter {
         for (let value of this.constructor.sockets) {
             await nextTick();
             let finder = x => value.rooms.has(x);
-            if (_.isArray(room) && _.find(room, finder) && value?.connectted === true) {
+            if (_.isArray(room) && _.find(room, finder) && value?.connected === true) {
                 yield value;
                 continue;
             }
 
-            if (value.rooms.has(room) && value?.connectted === true) {
+            if (value.rooms.has(room) && value?.connected === true) {
                 yield value;
             }
         }
@@ -41,11 +41,11 @@ class Tserver extends EventEmitter {
         for (let value of this.constructor.sockets) {
             await nextTick();
             let finder = x => value.rooms.has(x);
-            if (_.isArray(room) && _.find(room, finder) && value?.connectted === true) {
+            if (_.isArray(room) && _.find(room, finder) && value?.connected === true) {
                 return value;
             }
 
-            if (value.rooms.has(room) && value?.connectted === true) {
+            if (value.rooms.has(room) && value?.connected === true) {
                 return value;
             }
         }
